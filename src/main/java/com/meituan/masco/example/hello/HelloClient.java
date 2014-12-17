@@ -5,8 +5,8 @@ import org.apache.thrift.transport.THttpClient;
 import org.apache.thrift.transport.TTransport;
 
 import com.meituan.masco.generated.hello.HelloService;
-import com.meituan.masco.generated.hello.Person;
 import com.meituan.masco.rpc.MascoProtocol;
+import com.meituan.masco.rpc.MascoTransport;
 
 public class HelloClient {
 
@@ -15,9 +15,11 @@ public class HelloClient {
 		//TTransport transport = new THttpClient("http://www.phpthriftserver.dev.sankuai.com");
 		//TTransport transport = new MascoHttpClient("http://www.phpthriftserver.dev.sankuai.com");
 		//MascoTransport transport = new MascoTransport(new THttpClient("http://localhost:8080/hello"), MascoTransport.SERIALIZER_COMPACT);
-		TTransport transport = new THttpClient("http://localhost:8080/hello");
+		//TTransport transport = new THttpClient("http://localhost:8080/hello");
+		TTransport transport = new THttpClient("http://www.phpthriftserver.dev.sankuai.com");
+
 		//TProtocol protocol = new MascoProtocol(transport);
-		MascoProtocol.Factory factory = new MascoProtocol.Factory();
+		MascoProtocol.Factory factory = new MascoProtocol.Factory(MascoTransport.SERIALIZER_COMPACT);
 		HelloService.Client client = new HelloService.Client(factory.getProtocol(transport));
 		//client.addFilter(new AuthenticateFilter(...));
 		//client.addFilter(new LoggingFilter(...));
@@ -26,8 +28,8 @@ public class HelloClient {
 		System.out.println(result);
 		result = client.hello("World");
 		System.out.println(result);
-		Person p = new Person("Marlon", "Yao");
-		result = client.helloV2(p);
-		System.out.println(result);
+		//Person p = new Person("Marlon", "Yao");
+		//result = client.helloV2(p);
+		//System.out.println(result);
 	}
 }

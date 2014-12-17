@@ -1,5 +1,8 @@
 package com.meituan.masco.rpc;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.thrift.TByteArrayOutputStream;
 import org.apache.thrift.transport.TMemoryInputTransport;
 import org.apache.thrift.transport.TTransport;
@@ -17,7 +20,9 @@ public class MascoTransport extends TTransport {
 	private final TTransport transport;
 
 	private int serializerId;
-	private byte[] headerBuf;
+
+	private String url = null;
+	private Map<String, String> headers = new HashMap<String, String>();
 
 	private TByteArrayOutputStream writeBuffer = new TByteArrayOutputStream(1024);
 	private TMemoryInputTransport readBuffer = new TMemoryInputTransport(new byte[0]);
@@ -90,11 +95,16 @@ public class MascoTransport extends TTransport {
 		if (headerSize > 0) {
 			byte[] headerBuf = new byte[headerSize];
 			transport.readAll(headerBuf, 0, headerSize);
-			this.headerBuf = headerBuf;
+			//this.headerBuf = headerBuf;
 		}
 		byte[] bodyBuf = new byte[bodySize];
 		transport.readAll(bodyBuf, 0, bodySize);
 		readBuffer.reset(bodyBuf);
+
+		System.out.println(bodyBuf.length);
+		for (int i = 0; i < bodyBuf.length; i++) {
+			System.out.printf("%02X", bodyBuf[i]);
+		}
 	}
 
 	@Override
@@ -148,5 +158,29 @@ public class MascoTransport extends TTransport {
 
 	public int getSerializerId() {
 		return serializerId;
+	}
+
+	public void setUrl(String url) {
+		this.url = url;
+	}
+
+	public String getUrl() {
+		return this.url;
+	}
+
+	public void addHeader(String name, String value) {
+		headers.put(name, value);
+	}
+
+	public void addHeaders(Map<String, String> headers) {
+		headers.putAll(headers);
+	}
+
+	public String getHeader(String name) {
+		return headers.get(name);
+	}
+
+	public Map<String, String> getHeaders() {
+		return this.headers;
 	}
 }

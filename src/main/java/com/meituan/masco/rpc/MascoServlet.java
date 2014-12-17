@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Enumeration;
 import java.util.Map;
 
 import javax.servlet.ServletException;
@@ -74,7 +75,19 @@ public class MascoServlet extends HttpServlet {
       OutputStream out = response.getOutputStream();
 
       // Only this line has been changed.
-      TTransport transport = new MascoTransport(new TIOStreamTransport(in, out));
+      MascoTransport transport = new MascoTransport(new TIOStreamTransport(in, out));
+      String uri = request.getScheme() + "://" +
+              request.getServerName() +
+              ("http".equals(request.getScheme()) && request.getServerPort() == 80 || "https".equals(request.getScheme()) && request.getServerPort() == 443 ? "" : ":" + request.getServerPort() ) +
+              request.getRequestURI() +
+             (request.getQueryString() != null ? "?" + request.getQueryString() : "");
+      transport.setUrl(uri);
+      for (Enumeration<String> headerNames = request.getHeaderNames(); headerNames.hasMoreElements();) {
+    	  String headerName = headerNames.nextElement();
+    	  String headerValue = request.getHeader(headerName);
+    	  transport.addHeader(headerName, headerValue);
+      }
+
       inTransport = transport;
       outTransport = transport;
 
