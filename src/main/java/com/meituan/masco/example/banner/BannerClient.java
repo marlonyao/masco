@@ -2,6 +2,8 @@ package com.meituan.masco.example.banner;
 
 import java.util.List;
 
+import com.meituan.masco.generated.hello.HelloService;
+import com.meituan.masco.rpc.EncryptDecryptTransport;
 import org.apache.thrift.TException;
 import org.apache.thrift.transport.THttpClient;
 import org.apache.thrift.transport.TTransport;
@@ -16,11 +18,11 @@ public class BannerClient {
 		BannerService.Iface client = createBannerService();
 
 		// create Banner
-		Banner banner = new Banner(0, 1, new Location("index", "recommend"),
-				"http://p0.meituan.net/0.0.90/deal/xxxxxxxxxxx.png",
-				"http://www.meituan.com/deal/11111.html");
-		int bannerId = client.createBanner(banner);
-		System.out.println("create Banner: " + bannerId);
+//		Banner banner = new Banner(0, 1, new Location("index", "recommend"),
+//				"http://p0.meituan.net/0.0.90/deal/xxxxxxxxxxx.png",
+//				"http://www.meituan.com/deal/11111.html");
+//		int bannerId = client.createBanner(banner);
+//		System.out.println("create Banner: " + bannerId);
 
 		// find banners
 		List<Banner> banners = client.getBanners(1);
@@ -31,7 +33,8 @@ public class BannerClient {
 
 	// TODO: how to hide connection manage?
 	private static BannerService.Iface createBannerService() throws TException {
-		TTransport transport = new THttpClient("http://localhost:8080/banner");
+		//MascoTransport transport = new MascoTransport(new THttpClient("http://localhost:8602/banner"));
+		TTransport transport = new EncryptDecryptTransport(new THttpClient("http://localhost:8602/banner"));
 		MascoProtocol.Factory factory = new MascoProtocol.Factory();
 		BannerService.Client client = new BannerService.Client(factory.getProtocol(transport));
 		transport.open();

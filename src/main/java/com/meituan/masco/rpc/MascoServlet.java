@@ -58,7 +58,6 @@ public class MascoServlet extends HttpServlet {
   @Override
   protected void doPost(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-
     TTransport inTransport = null;
     TTransport outTransport = null;
 
@@ -74,7 +73,10 @@ public class MascoServlet extends HttpServlet {
       OutputStream out = response.getOutputStream();
 
       // Only this line has been changed.
-      TTransport transport = new MascoTransport(new TIOStreamTransport(in, out));
+      TTransport transport =new MascoTransport(new EncryptDecryptTransport(new TIOStreamTransport(in, out)));
+
+      //TTransport transport =new MascoTransport((new TIOStreamTransport(in, out)));
+
       inTransport = transport;
       outTransport = transport;
 
