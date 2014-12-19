@@ -27,6 +27,9 @@ public class BannerClient {
 		for (Banner b : banners) {
 			System.out.println("---" + b);
 		}
+
+		banner.setId(100);
+		client.updateBanner(banner);
 	}
 
 	// TODO: how to hide connection manage?

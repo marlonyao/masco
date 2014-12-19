@@ -1,11 +1,19 @@
 package com.meituan.masco.example.banner;
 
-import com.meituan.masco.generated.banner.BannerService;
-import com.meituan.masco.rpc.MascoProtocol;
-import com.meituan.masco.rpc.MascoServlet;
+import org.apache.thrift.TProcessor;
 
-public class BannerServlet extends MascoServlet {
+import com.meituan.masco.generated.banner.BannerService;
+import com.meituan.masco.rpc.MascoServlet;
+import com.meituan.masco.rpc.ProcessorFactory;
+
+public class BannerServlet extends MascoServlet<BannerService.Iface> {
 	public BannerServlet() {
-		super(new BannerService.Processor(new BannerHandler()), new MascoProtocol.Factory());
+		super(new ProcessorFactory<BannerService.Iface>() {
+			@Override
+			public TProcessor createProcessor(BannerService.Iface handler) {
+				return new BannerService.Processor<BannerService.Iface>(handler);
+			}
+		}, new BannerHandler());
+		//super(new BannerService.Processor(new BannerHandler()), new MascoProtocol.Factory());
 	}
 }

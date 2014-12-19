@@ -82,7 +82,7 @@ public class MascoTransport extends TTransport {
 
 		// 2: serializer id
 		serializerId = bytes[2] & 0xff;
-		System.out.println("read serializerId: " + serializerId);
+		//System.out.println("read serializerId: " + serializerId);
 
 		// 3-5: padding
 		// 6-7: header size
@@ -101,10 +101,6 @@ public class MascoTransport extends TTransport {
 		transport.readAll(bodyBuf, 0, bodySize);
 		readBuffer.reset(bodyBuf);
 
-		System.out.println(bodyBuf.length);
-		for (int i = 0; i < bodyBuf.length; i++) {
-			System.out.printf("%02X", bodyBuf[i]);
-		}
 	}
 
 	@Override
@@ -132,6 +128,7 @@ public class MascoTransport extends TTransport {
 		writeBuffer.reset();
 
 		transport.write(bytes);
+		//transport.write(buf, 0, bodySize);
 		transport.write(buf);
 		transport.flush();
 	}

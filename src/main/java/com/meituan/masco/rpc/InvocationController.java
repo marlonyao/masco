@@ -3,14 +3,23 @@ package com.meituan.masco.rpc;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import com.meituan.masco.generated.hello.HelloService;
 
 public class InvocationController<I> {
+	public static final String KEY_URI = "builtin.uri";
+
 	private I handler;
 	private List<InvokeFilter> filters = new ArrayList<InvokeFilter>();
+	private Map<String, Object> metadata;
 
 	public InvocationController(I handler) {
 		this.handler = handler;
+		this.metadata = new HashMap<String, Object>();
 	}
 
 	public void addFilter(InvokeFilter filter) {
@@ -18,8 +27,18 @@ public class InvocationController<I> {
 	}
 
 	public I createProxy() {
-
-		return null;
+		// FIXME: 写死了 HelloService.Iface
+		Object result = java.lang.reflect.Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{HelloService.Iface.class}, new java.lang.reflect.InvocationHandler() {
+			@Override
+			public Object invoke(Object proxy, Method method, Object[] args)
+					throws Throwable {
+				Invokation invokation = new Invokation(method.getName(), Arrays.asList(args));
+				invokation.setMetadata(InvocationController.this.metadata);
+				InvokeResult result = InvocationController.this.invoke(invokation);
+				return result.getResult();
+			}
+		});
+		return (I)result;
 	}
 
 	public InvokeResult invoke(Invokation invokation) {
@@ -54,16 +73,25 @@ public class InvocationController<I> {
 		if (foundMethod == null) {
 			throw new RuntimeException("Found no method named: " + methodName);
 		}
+		if (handler instanceof InvokeMetadataAware) {
+			((InvokeMetadataAware)handler).setMetadata(invokation.getMetadata());
+		}
 		try {
 			Object handlerResult = foundMethod.invoke(handler, invokation.getParams().toArray());
 			return new InvokeResult(handlerResult);
-		}  catch (IllegalArgumentException e) {
-			throw e;
 		} catch (IllegalAccessException e) {
 			// TODO: more specific exception
 			throw new RuntimeException("Invoke handler error", e);
 		} catch (InvocationTargetException e) {
 			throw new RuntimeException("Invoke handler error", e);
 		}
+	}
+
+	public void setMetadata(String key, Object value) {
+		metadata.put(key, value);
+	}
+
+	public Object getMetadata(String key) {
+		return metadata.get(key);
 	}
 }

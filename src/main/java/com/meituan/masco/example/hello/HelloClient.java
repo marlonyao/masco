@@ -15,8 +15,8 @@ public class HelloClient {
 		//TTransport transport = new THttpClient("http://www.phpthriftserver.dev.sankuai.com");
 		//TTransport transport = new MascoHttpClient("http://www.phpthriftserver.dev.sankuai.com");
 		//MascoTransport transport = new MascoTransport(new THttpClient("http://localhost:8080/hello"), MascoTransport.SERIALIZER_COMPACT);
-		//TTransport transport = new THttpClient("http://localhost:8080/hello");
-		TTransport transport = new THttpClient("http://www.phpthriftserver.dev.sankuai.com");
+		TTransport transport = new THttpClient("http://localhost:8080/hello?a=b&c=d");
+		//TTransport transport = new THttpClient("http://www.phpthriftserver.dev.sankuai.com");
 
 		//TProtocol protocol = new MascoProtocol(transport);
 		MascoProtocol.Factory factory = new MascoProtocol.Factory(MascoTransport.SERIALIZER_COMPACT);
