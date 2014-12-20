@@ -20,130 +20,124 @@ import org.apache.thrift.transport.TIOStreamTransport;
 
 public class MascoServlet<I> extends HttpServlet {
 
-  //private final TProcessor processor;
-  //private InvocationController<I> controller;
-  private I handler;
-  private List<InvokeFilter> filters;
-  //private Class processorType;
-  private ProcessorFactory<I> processorFactory;
+	// private final TProcessor processor;
+	// private InvocationController<I> controller;
 
-  //private final TProtocolFactory inProtocolFactory;
+	private I handler;
+	private Class<I> handlerType;
+	private List<InvokeFilter> filters;
+	// private Class processorType;
+	private ProcessorFactory<I> processorFactory;
 
-  //private final TProtocolFactory outProtocolFactory;
+	// private final TProtocolFactory inProtocolFactory;
 
-  private final Collection<Map.Entry<String, String>> customHeaders;
+	// private final TProtocolFactory outProtocolFactory;
 
-  public MascoServlet(ProcessorFactory<I> processorFactory, I handler) {
-    super();
-    /*if (!TBaseProcessor.class.isAssignableFrom(processorType)) {
-    	throw new IllegalArgumentException("processorType must be subclass of TBaseProcessor: " + processorType);
-    }*/
-    //this.processorType = processorType;
-    this.processorFactory = processorFactory;
-    this.handler = handler;
-    this.filters = new ArrayList<InvokeFilter>();
-    this.customHeaders = new ArrayList<Map.Entry<String, String>>();
-  }
+	private final Collection<Map.Entry<String, String>> customHeaders;
 
-  private TProcessor createProcessor(I handler) {
-	  return processorFactory.createProcessor(handler);
-	  /*
-	try {
-		Constructor constructor = processorType.getConstructor(Object.class);
-		  TProcessor processor = (TProcessor) constructor.newInstance(handler);
-		  return processor;
-	} catch (NoSuchMethodException e) {
-		throw new IllegalArgumentException(e);
-	} catch (InstantiationException e) {
-		throw new IllegalArgumentException(e);
-	} catch (IllegalAccessException e) {
-		throw new IllegalArgumentException(e);
-	} catch (InvocationTargetException e) {
-		throw new IllegalArgumentException(e);
-	}*/
-  }
+	public MascoServlet(ProcessorFactory<I> processorFactory, I handler, Class<I> handlerType) {
+		super();
+		this.processorFactory = processorFactory;
+		this.handler = handler;
+		// TODO: use reflection to get handlerType
+		this.handlerType = handlerType;
+		this.filters = new ArrayList<InvokeFilter>();
+		this.customHeaders = new ArrayList<Map.Entry<String, String>>();
+	}
 
-  /**
-   * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
-   *      response)
-   */
-  @Override
-  protected void doPost(HttpServletRequest request, HttpServletResponse response)
-      throws ServletException, IOException {
+	private TProcessor createProcessor(I handler) {
+		return processorFactory.createProcessor(handler);
+	}
 
-    try {
-      response.setContentType("application/x-thrift");
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
+	 *      response)
+	 */
+	@Override
+	protected void doPost(HttpServletRequest request,
+			HttpServletResponse response) throws ServletException, IOException {
 
-      if (null != this.customHeaders) {
-        for (Map.Entry<String, String> header : this.customHeaders) {
-          response.addHeader(header.getKey(), header.getValue());
-        }
-      }
-      InputStream in = request.getInputStream();
-      OutputStream out = response.getOutputStream();
+		try {
+			response.setContentType("application/x-thrift");
 
-      InvocationController<I> controller = new InvocationController<I>(handler);
-      for (InvokeFilter filter: filters) {
-    	  controller.addFilter(filter);
-      }
-      String uri = request.getScheme() + "://" +
-              request.getServerName() +
-              ("http".equals(request.getScheme()) && request.getServerPort() == 80 || "https".equals(request.getScheme()) && request.getServerPort() == 443 ? "" : ":" + request.getServerPort() ) +
-              request.getRequestURI() +
-             (request.getQueryString() != null ? "?" + request.getQueryString() : "");
-      controller.setMetadata(InvocationController.KEY_URI, uri);
+			if (null != this.customHeaders) {
+				for (Map.Entry<String, String> header : this.customHeaders) {
+					response.addHeader(header.getKey(), header.getValue());
+				}
+			}
+			InputStream in = request.getInputStream();
+			OutputStream out = response.getOutputStream();
 
-      for (Enumeration<String> headerNames = request.getHeaderNames(); headerNames.hasMoreElements();) {
-    	  String headerName = headerNames.nextElement();
-    	  String headerValue = request.getHeader(headerName);
-    	  controller.setMetadata(headerName, headerValue);
-      }
+			InvocationController<I> controller = new InvocationController<I>(handler, handlerType);
+			for (InvokeFilter filter : filters) {
+				controller.addFilter(filter);
+			}
+			String uri = request.getScheme()
+					+ "://"
+					+ request.getServerName()
+					+ ("http".equals(request.getScheme())
+							&& request.getServerPort() == 80
+							|| "https".equals(request.getScheme())
+							&& request.getServerPort() == 443 ? "" : ":"
+							+ request.getServerPort())
+					+ request.getRequestURI()
+					+ (request.getQueryString() != null ? "?"
+							+ request.getQueryString() : "");
+			controller.setMetadata(InvocationController.KEY_URI, uri);
 
-      TProcessor processor = createProcessor(controller.createProxy());
-      MascoTransport transport = new MascoTransport(new TIOStreamTransport(in, out));
-      MascoProtocol protocol = new MascoProtocol(transport);
-      processor.process(protocol, protocol);
-      out.flush();
-    } catch (TException te) {
-      throw new ServletException(te);
-    }
-  }
+			for (Enumeration<String> headerNames = request.getHeaderNames(); headerNames
+					.hasMoreElements();) {
+				String headerName = headerNames.nextElement();
+				String headerValue = request.getHeader(headerName);
+				controller.setMetadata(headerName, headerValue);
+			}
 
-  /**
-   * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse
-   *      response)
-   */
-  @Override
-protected void doGet(HttpServletRequest request, HttpServletResponse response)
-      throws ServletException, IOException {
-    doPost(request, response);
-  }
+			TProcessor processor = createProcessor(controller.createProxy());
+			MascoTransport transport = new MascoTransport(
+					new TIOStreamTransport(in, out));
+			MascoProtocol protocol = new MascoProtocol(transport);
+			processor.process(protocol, protocol);
+			out.flush();
+		} catch (TException te) {
+			throw new ServletException(te);
+		}
+	}
 
-  public void addFilter(InvokeFilter filter) {
-	  this.filters.add(filter);
-  }
+	/**
+	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse
+	 *      response)
+	 */
+	@Override
+	protected void doGet(HttpServletRequest request,
+			HttpServletResponse response) throws ServletException, IOException {
+		doPost(request, response);
+	}
 
-  public void addCustomHeader(final String key, final String value) {
-    this.customHeaders.add(new Map.Entry<String, String>() {
-      @Override
-	public String getKey() {
-        return key;
-      }
+	public void addFilter(InvokeFilter filter) {
+		this.filters.add(filter);
+	}
 
-      @Override
-	public String getValue() {
-        return value;
-      }
+	public void addCustomHeader(final String key, final String value) {
+		this.customHeaders.add(new Map.Entry<String, String>() {
+			@Override
+			public String getKey() {
+				return key;
+			}
 
-      @Override
-	public String setValue(String value) {
-        return null;
-      }
-    });
-  }
+			@Override
+			public String getValue() {
+				return value;
+			}
 
-  public void setCustomHeaders(Collection<Map.Entry<String, String>> headers) {
-    this.customHeaders.clear();
-    this.customHeaders.addAll(headers);
-  }
+			@Override
+			public String setValue(String value) {
+				return null;
+			}
+		});
+	}
+
+	public void setCustomHeaders(Collection<Map.Entry<String, String>> headers) {
+		this.customHeaders.clear();
+		this.customHeaders.addAll(headers);
+	}
 }

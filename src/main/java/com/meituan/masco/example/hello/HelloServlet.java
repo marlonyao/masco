@@ -14,7 +14,7 @@ public class HelloServlet extends MascoServlet<HelloService.Iface> {
 			public TProcessor createProcessor(HelloService.Iface handler) {
 				return new HelloService.Processor<HelloService.Iface>(handler);
 			}
-		}, new HelloHandler());
+		}, new HelloHandler(), HelloService.Iface.class);
 		addFilter(new LoggingFilter());
 	}
 /*

@@ -13,7 +13,7 @@ public class BannerServlet extends MascoServlet<BannerService.Iface> {
 			public TProcessor createProcessor(BannerService.Iface handler) {
 				return new BannerService.Processor<BannerService.Iface>(handler);
 			}
-		}, new BannerHandler());
+		}, new BannerHandler(), BannerService.Iface.class);
 		//super(new BannerService.Processor(new BannerHandler()), new MascoProtocol.Factory());
 	}
 }

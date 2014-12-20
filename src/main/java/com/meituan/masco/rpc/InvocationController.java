@@ -8,17 +8,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.meituan.masco.generated.hello.HelloService;
-
 public class InvocationController<I> {
 	public static final String KEY_URI = "builtin.uri";
 
 	private I handler;
+	private Class<I> handlerType;
 	private List<InvokeFilter> filters = new ArrayList<InvokeFilter>();
 	private Map<String, Object> metadata;
 
-	public InvocationController(I handler) {
+	public InvocationController(I handler, Class<I> handlerType) {
 		this.handler = handler;
+		this.handlerType = handlerType;
 		this.metadata = new HashMap<String, Object>();
 	}
 
@@ -27,8 +27,7 @@ public class InvocationController<I> {
 	}
 
 	public I createProxy() {
-		// FIXME: 写死了 HelloService.Iface
-		Object result = java.lang.reflect.Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{HelloService.Iface.class}, new java.lang.reflect.InvocationHandler() {
+		Object result = java.lang.reflect.Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{handlerType}, new java.lang.reflect.InvocationHandler() {
 			@Override
 			public Object invoke(Object proxy, Method method, Object[] args)
 					throws Throwable {
@@ -83,6 +82,7 @@ public class InvocationController<I> {
 			// TODO: more specific exception
 			throw new RuntimeException("Invoke handler error", e);
 		} catch (InvocationTargetException e) {
+			// TODO: rethrow application Exception (TException)
 			throw new RuntimeException("Invoke handler error", e);
 		}
 	}
