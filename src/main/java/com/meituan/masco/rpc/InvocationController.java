@@ -27,7 +27,7 @@ public class InvocationController<I> {
 	}
 
 	public I createProxy() {
-		Object result = java.lang.reflect.Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{handlerType}, new java.lang.reflect.InvocationHandler() {
+		Object proxy = java.lang.reflect.Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{handlerType}, new java.lang.reflect.InvocationHandler() {
 			@Override
 			public Object invoke(Object proxy, Method method, Object[] args)
 					throws Throwable {
@@ -37,7 +37,9 @@ public class InvocationController<I> {
 				return result.getResult();
 			}
 		});
-		return (I)result;
+
+		@SuppressWarnings("unchecked") I result = (I)proxy;
+		return result;
 	}
 
 	public InvokeResult invoke(Invokation invokation) {

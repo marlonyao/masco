@@ -7,6 +7,8 @@ import com.meituan.masco.rpc.MascoServlet;
 import com.meituan.masco.rpc.ProcessorFactory;
 
 public class BannerServlet extends MascoServlet<BannerService.Iface> {
+	private static final long serialVersionUID = 1L;
+
 	public BannerServlet() {
 		super(new ProcessorFactory<BannerService.Iface>() {
 			@Override
